@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامه هفتگی پشتیبانی</title>
+    <style>
+        :root {
+            --bg: #e9eef5;
+            --bg-soft: #f5f7fb;
+            --surface: #edf2f7;
+            --surface-2: #e2e8f0;
+            --text: #1f2937;
+            --muted: #64748b;
+            --accent: #4f7cff;
+            --accent-2: #6c8cff;
+            --shadow-light: rgba(255, 255, 255, 0.85);
+            --shadow-dark: rgba(163, 177, 198, 0.55);
+            --radius-xl: 28px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Vazirmatn", "Segoe UI", Tahoma, Arial, sans-serif;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top right, #ffffff 0%, rgba(255,255,255,0) 28%),
+                radial-gradient(circle at bottom left, rgba(79, 124, 255, 0.10) 0%, rgba(79,124,255,0) 35%),
+                linear-gradient(145deg, #eef3f9 0%, #e2e8f0 100%);
+            color: var(--text);
+            padding: 32px 16px;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 28px;
+            border-radius: var(--radius-xl);
+            background: linear-gradient(145deg, #f7f9fc, #e6ebf2);
+            box-shadow:
+                18px 18px 40px var(--shadow-dark),
+                -18px -18px 40px var(--shadow-light);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding: 18px 16px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(145deg, #f8fbff, #e7edf5);
+            box-shadow:
+                inset 8px 8px 16px rgba(163, 177, 198, 0.18),
+                inset -8px -8px 16px rgba(255, 255, 255, 0.85);
+        }
+
+        h1 {
+            font-size: clamp(1.3rem, 2.4vw, 2rem);
+            line-height: 1.7;
+            color: var(--text);
+            letter-spacing: -0.2px;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.98rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #f8fbff, #e6ebf2);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            box-shadow:
+                12px 12px 24px rgba(163, 177, 198, 0.45),
+                -12px -12px 24px rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255,255,255,0.65);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(79,124,255,0.08), transparent 45%);
+            opacity: 0;
+            transition: 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                16px 16px 30px rgba(163, 177, 198, 0.50),
+                -16px -16px 30px rgba(255, 255, 255, 0.95);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .day {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1d4ed8;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(79, 124, 255, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .task {
+            background: linear-gradient(145deg, #fdfefe, #e8eef5);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            color: var(--text);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            box-shadow:
+                inset 4px 4px 10px rgba(163, 177, 198, 0.20),
+                inset -4px -4px 10px rgba(255, 255, 255, 0.9);
+            position: relative;
+            z-index: 1;
+        }
+
+        .task:last-child {
+            margin-bottom: 0;
+        }
+
+        .task:hover {
+            background: linear-gradient(145deg, #ffffff, #e9eff6);
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 18px 10px;
+            }
+
+            .container {
+                padding: 18px;
+                border-radius: 22px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .task {
+                font-size: 0.92rem;
+            }
+        }
+		        .logo-box {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 20px auto;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #f0f4f9, #d9dfe8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                8px 8px 16px rgba(163, 177, 198, 0.4),
+                -8px -8px 16px rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .logo-img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        /* واکنش‌گرایی بیشتر برای لوگو در موبایل */
+        @media (max-width: 640px) {
+            .logo-box {
+                width: 70px;
+                height: 70px;
+                margin-bottom: 15px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+               <div class="header">
+            <!-- اضافه کردن بخش لوگو -->
+            <div class="logo-box">
+                <img src="file/images/logo.png" alt="Logo" class="logo-img">
+            </div>
+            
+            <h1>برنامه هفتگی پشتیبانی سامانه اثر انگشت مجتمع مس درآلو</h1>
+            <div class="subtitle">واحد تربیت بدنی مجتمع مس درآلو</div>
+        </div>
+
+
+        <div class="grid">
+            <div class="card">
+                <div class="day">شنبه</div>
+                <div class="task">۰۷:۰۰ - ۱۲:۰۰: واحد تربیت بدنی معدن درآلو</div>
+                <div class="task">۱۳:۰۰ - ۱۶:۰۰: فرهنگسرای گلزار</div>
+            </div>
+
+            <div class="card">
+                <div class="day">یکشنبه</div>
+                <div class="task">۰۷:۰۰ - ۱۲:۰۰: واحد بردسیر</div>
+                <div class="task">۱۳:۰۰ - ۱۶:۰۰: درآلو</div>
+            </div>
+
+            <div class="card">
+                <div class="day">دوشنبه</div>
+                <div class="task">۰۷:۰۰ - ۱۲:۰۰: کرمان</div>
+                <div class="task">۱۳:۰۰ - ۱۶:۰۰: راین</div>
+            </div>
+
+            <div class="card">
+                <div class="day">سه‌شنبه</div>
+                <div class="task">۰۷:۰۰ - ۱۲:۰۰: تربیت بدنی درآلو</div>
+                <div class="task">۱۲:۰۰ - ۱۶:۰۰: کرمان</div>
+            </div>
+
+            <div class="card">
+                <div class="day">چهارشنبه</div>
+                <div class="task">۰۷:۰۰ - ۱۶:۰۰: رابر</div>
+            </div>
+
+            <div class="card">
+                <div class="day">پنج‌شنبه</div>
+                <div class="task">۰۷:۰۰ - ۱۶:۰۰: بافت</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
