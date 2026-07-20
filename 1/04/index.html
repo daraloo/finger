@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>پنل پایش و مانیتورینگ پروژه ثبت اثر انگشت</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+
+/* ----------------------------------------------------
+   🎨 1) ROOT VARIABLES — رنگ‌ها و تم کلی داشبورد
+-----------------------------------------------------*/
+:root{
+  --bg: #0b1220;            /* پس‌زمینه اصلی */
+  --card: #0f1724;          /* رنگ کارت‌ها */
+  --glass: rgba(255,255,255,0.03); /* افکت شیشه‌ای */
+  --accent: #06b6d4;        /* آبی فیروزه‌ای اصلی */
+  --accent-2: #10b981;      /* سبز تأییدی */
+  --muted: #9aa8bd;         /* متن کم‌رنگ */
+  --paper: #f7fafc;         /* رنگ متن روشن */
+}
+
+/* ----------------------------------------------------
+   🎨 2) GLOBAL — بدنه، تایپوگرافی، بک‌گراند
+-----------------------------------------------------*/
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow-x:hidden;
+  width:100%;
+  font-family:"Vazirmatn","Tahoma",sans-serif;
+  background:linear-gradient(180deg,#071327,#061a25);
+  color:var(--paper);
+}
+
+/* کانتینر اصلی */
+.wrap{
+  width:100%;
+  max-width:1300px;
+  margin:20px auto;
+  padding:18px;
+  box-sizing:border-box;
+}
+
+/* ----------------------------------------------------
+   🎨 3) HEADER — هدر بالای داشبورد
+-----------------------------------------------------*/
+header{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-bottom:12px;
+}
+header h1{
+  margin:0;
+  font-size:1.25rem;
+}
+.api-status{
+  margin-left:auto;
+  font-size:0.95rem;
+  color:var(--muted);
+}
+
+/* ----------------------------------------------------
+   🎨 4) KPI CARDS — کارت‌های شاخص‌ها
+-----------------------------------------------------*/
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(6,1fr);
+  gap:12px;
+}
+
+.card{
+  background:linear-gradient(180deg,
+    rgba(255,255,255,0.02),
+    rgba(255,255,255,0.01)
+  );
+  padding:14px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.03);
+  box-shadow:0 6px 18px rgba(0,0,0,0.5);
+   min-width:0;
+  overflow:hidden;
+}
+
+.kpi .value{
+  font-size:1.4rem;
+  font-weight:800;
+}
+
+/* ----------------------------------------------------
+   🎨 5) MAIN LAYOUT — چیدمان اصلی دو ستونه
+-----------------------------------------------------*/
+.layout{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:14px;
+  margin-top:12px;
+}
+
+/* گرید‌های نصفه برای چارت‌ها */
+.half-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+/* ----------------------------------------------------
+   🎨 6) CHARTS — جعبه نمودارها
+-----------------------------------------------------*/
+.chart-box{
+  height:260px;
+  padding:12px;
+}
+
+/* ----------------------------------------------------
+   🎨 7) TABLE BOX — تابلوی جدول‌ها
+-----------------------------------------------------*/
+.table-box{
+  max-height:360px;
+  overflow:auto;
+  padding:8px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  color:#e6eef8;
+}
+th, td{
+  padding:8px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  text-align:right;
+  font-size:0.95rem;
+}
+th{
+  color:var(--muted);
+  font-weight:700;
+}
+
+/* ----------------------------------------------------
+   🎨 8) AI ANALYSIS SECTION — تحلیل هوش مصنوعی
+-----------------------------------------------------*/
+.ai-box{
+  white-space:pre-wrap;
+  line-height:1.5;
+  color:#e6eef8;
+}
+
+/* ----------------------------------------------------
+   🎨 9) CONTROLS — دکمه‌ها و سرچ
+-----------------------------------------------------*/
+.controls{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+
+.btn{
+  padding:8px 10px;
+  border-radius:8px;
+  border:0;
+  background:var(--accent);
+  color:#042;
+  cursor:pointer;
+  font-weight:700;
+}
+
+input.search{
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:transparent;
+  color:var(--paper);
+}
+
+/* ----------------------------------------------------
+   🎨 10) FOOTER
+-----------------------------------------------------*/
+footer{
+  margin-top:18px;
+  color:var(--muted);
+  text-align:center;
+}
+
+/* ----------------------------------------------------
+   🎨 11) RESPONSIVE — نسخه موبایل
+-----------------------------------------------------*/
+@media (max-width:1000px){
+  .kpis{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .layout{
+    grid-template-columns:1fr;
+  }
+}
+header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:12px;
+}
+
+.logo-frame{
+  width:80px;
+  height:80px;
+  border:none;
+  border-radius:50%;
+  overflow:hidden;
+  background:#fff;
+  flex-shrink:0;
+  box-shadow:
+    0 0 0 3px rgba(6,182,212,.25),
+    0 8px 25px rgba(0,0,0,.35);
+}
+
+.header-content{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+}
+
+.header-content h1{
+  margin:0;
+}
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+
+   <header>
+
+  <iframe
+    src="3.html"
+    class="logo-frame"
+    title="لوگو">
+  </iframe>
+
+  <div class="header-content">
+    <h1>پنل پایش و مانیتورینگ پروژه ثبت اثر انگشت</h1>
+
+    <div class="api-status" id="apiStatus">
+      وضعیت اتصال:
+      <strong id="apiFlag">
+        نسخه دمو (متصل به سرور)
+      </strong>
+    </div>
+  </div>
+
+</header>
+
+    <!-- KPI ROW -->
+    <div class="kpis">
+      <div class="card kpi">
+        <div style="color:var(--muted)">ثبت اثر انگشت</div>
+        <div class="value" id="k_news">—</div>
+        <div style="font-size:12px;color:var(--muted)">نفر (پرسنل و خانواده‌ها) <span id="k_news_delta">—</span></div>
+      </div>
+
+      <div class="card kpi">
+        <div style="color:var(--muted)">مناطق عملیاتی</div>
+        <div class="value" id="k_hot">—</div>
+        <div style="font-size:12px;color:var(--muted)">رسیدگی شده از کل مناطق هدف: <span id="k_hot_vol">—</span></div>
+      </div>
+
+      <div class="card kpi">
+        <div style="color:var(--muted)">جلسات توسعه</div>
+        <div class="value" id="k_sent">—</div>
+        <div style="font-size:12px;color:var(--muted)">برگزار شده: <span id="k_sent_ratio">—</span></div>
+      </div>
+
+      <div class="card kpi">
+        <div style="color:var(--muted)">باشگاه های فعال</div>
+        <div class="value" id="k_risk" style="color:#f97316">—</div>
+        <div style="font-size:12px;color:var(--muted)">اثر انگشت، رزرو: <span id="k_alerts">—</span></div>
+      </div>
+
+      <div class="card kpi">
+        <div style="color:var(--muted)">شاخص فعالیت</div>
+        <div class="value" id="k_price">—</div>
+        <div style="font-size:12px;color:var(--muted)">2هفتگی: <span id="k_price_delta">—</span></div>
+      </div>
+
+      <div class="card kpi">
+        <div style="color:var(--muted)">درصد پیشرفت پروژه</div>
+        <div class="value" id="k_ops">—</div>
+        <div style="font-size:12px;color:var(--muted)">مهم‌ترین: <span id="k_op_top">—</span></div>
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="layout">
+
+      <!-- LEFT: charts, tables -->
+      <div>
+
+        <div class="half-grid">
+          <div class="card chart-box">
+            <div style="font-weight:700;margin-bottom:8px">گزارش روند پیشروی پروژه براساس شاخص ثبت 7 روز گذشته</div>
+            <canvas id="chart_trend"></canvas>
+          </div>
+
+          <div class="card chart-box">
+            <div style="font-weight:700;margin-bottom:8px">حجم فعالیت های انجام شده (Stacked)</div>
+            <canvas id="chart_topics"></canvas>
+          </div>
+        </div>
+
+        <div class="half-grid" style="margin-top:12px">
+          <div class="card chart-box">
+            <div style="font-weight:700;margin-bottom:8px">وضعیت اجرای سامانه احراز هویت و خدمات ورزشی به تفکیک شرکت ها</div>
+            <canvas id="chart_prices"></canvas>
+          </div>
+
+          <div class="card chart-box">
+            <div style="font-weight:700;margin-bottom:8px">نقشه‌گرما دسته‌ها (نمایشی)</div>
+            <canvas id="chart_heat"></canvas>
+          </div>
+        </div>
+
+        <div class="card table-box" style="margin-top:12px">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <div style="font-weight:700">جدول اخبار (امروز)</div>
+            <div style="margin-left:auto"><input class="search" id="searchInput" placeholder="جستجوی عنوان..."></div>
+          </div>
+          <table id="newsTable">
+            <thead><tr><th>تیتر</th><th>دسته</th><th>منبع</th><th>اهمیت</th><th>زمان</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: AI box, gauges, actions -->
+      <div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-weight:700">خلاصه هوش مصنوعی (تحلیل فوری)</div>
+          <div id="aiSummary" class="ai-box" style="margin-top:8px">در حال بارگذاری تحلیل...</div>
+          <div class="controls">
+            <button class="btn" onclick="refreshNow()">بروزرسانی</button>
+            <button class="btn" onclick="downloadPDF()">خروجی PDF</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:12px">
+          <div style="font-weight:700">گِیج‌ها(نسبت به کل افراد ثبت شده)</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <div style="flex:1;text-align:center"><div id="g_risk"></div><div style="font-size:13px;color:var(--muted)">افراد تحت تکلف</div></div>
+            <div style="flex:1;text-align:center"><div id="g_sent"></div><div style="font-size:13px;color:var(--muted)">پرسنل</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:6px">اقدامات فوری (Actionable)</div>
+          <ul id="actionList" style="color:var(--paper);line-height:1.6;margin-top:6px"></ul>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer>
+     
+    </footer>
+
+  </div>
+
+<script>
+/* ------------------------
+   CONFIG: قرار دادن URL وب‌اپ GAS اینجا
+   ------------------------ */
+const GAS_WEBAPP_URL = ''; // ← این را به URL وب‌اپ GAS خودت تغییر بده (مثلاً https://script.google.com/macros/s/XXX/exec)
+const USE_GAS = Boolean(GAS_WEBAPP_URL && GAS_WEBAPP_URL.length>0);
+
+/* ------------------------
+   Fetch data: از GAS یا دیتا دموی محلی
+   انتظار ساختار خروجی JSON:
+   {
+     lastUpdate: "...",
+     kpi: { newsCount, newsDelta, hot, hotVol, sentiment, sentRatio, risk, alerts, priceIndex, priceDelta, ops, opTop },
+     ai: { summary },
+     news: [{title, category, source, importance, time}, ...],
+     trend: {labels:[], values:[]},
+     topicsStack: {labels:[], datasets: [ {label,data:[]}, ... ]},
+     priceSeries: {labels:[], datasets: [{label,data:[]}, ...]},
+     heat: [{label,x,y,value}, ...]
+   }
+------------------------*/
+
+async function fetchDataFromGAS(){
+  try{
+    const res = await fetch(GAS_WEBAPP_URL);
+    if(!res.ok) throw new Error('GAS fetch failed: ' + res.status);
+    const j = await res.json();
+    document.getElementById('apiFlag').innerText = 'GAS: متصل';
+    return j;
+  }catch(e){
+    console.warn('GAS fetch error', e);
+    document.getElementById('apiFlag').innerText = 'GAS: خطا در اتصال (دمو فعال)';
+    return null;
+  }
+}
+
+/* Demo data (fallback) */
+function demoData(){
+  return {
+    lastUpdate: new Date().toLocaleString('fa-IR'),
+    kpi: {
+      newsCount: +300, newsDelta: '+5%', hot:'4 / 7', hotVol: 4,
+      sentiment: '4', sentRatio: '32/68', risk:'1', alerts:2,
+      priceIndex:'5%', priceDelta:'+4.1%', ops:5, opTop:'پروژه X'
+    },
+    ai: {
+  summary: 'بررسی شاخص‌های اجرایی نشان می‌دهد پروژه استقرار سامانه احراز هویت و مدیریت خدمات ورزشی وارد فاز بهره‌برداری شده است. با این حال، پایش عملکرد دوره جاری نشان‌دهنده عدم ثبت فعالیت جدید طی دو روز گذشته است. همچنین تعداد افراد ثبت‌شده تاکنون کمتر از ۵ درصد جامعه هدف برآوردی بوده و این موضوع می‌تواند بر زمان‌بندی تکمیل پروژه تأثیرگذار باشد. هشدار: روند فعلی نیازمند بررسی فوری دلایل کاهش فعالیت، ارزیابی موانع اجرایی در مناطق تحت پوشش و بازبینی برنامه عملیاتی است. پیشنهاد می‌شود وضعیت مناطق باقیمانده، میزان مشارکت کاربران، فرآیند اطلاع‌رسانی و ظرفیت اجرایی تیم مورد ارزیابی قرار گرفته و اقدامات اصلاحی جهت تسریع روند استقرار و افزایش نرخ ثبت‌نام در دستور کار قرار گیرد.'
+},
+    news: [
+  {
+    title:'استقرار سامانه احراز هویت در معدن درآلو تکمیل شد',
+    category:'استقرار سامانه',
+    source:'واحد تربیت بدنی',
+    importance:98,
+    time:'این هفته'
+  },
+  {
+    title:'ثبت اطلاعات بیومتریک پرسنل و خانواده‌ها در رابر انجام شد',
+    category:'ثبت اثر انگشت',
+    source:'تیم اجرایی',
+    importance:95,
+    time:'این هفته'
+  },
+  {
+    title:'آموزش استفاده از اپلیکیشن رزرو به کاربران بافت',
+    category:'آموزش',
+    source:'واحد پشتیبانی',
+    importance:90,
+    time:'این هفته'
+  },
+  {
+    title:'رفع مشکلات ثبت اطلاعات کاربران گلزار',
+    category:'پشتیبانی',
+    source:'واحد فنی',
+    importance:82,
+    time:'این هفته'
+  },
+  {
+    title:'برگزاری جلسه توسعه سامانه و تدوین فرم‌های استاندارد',
+    category:'توسعه',
+    source:'مدیریت پروژه',
+    importance:88,
+    time:'این هفته'
+  },
+  {
+    title:'طراحی داشبورد مدیریتی جهت پایش عملکرد سامانه',
+    category:'گزارش‌گیری',
+    source:'واحد فناوری',
+    importance:85,
+    time:'این هفته'
+  },
+  {
+    title:'برنامه‌ریزی استقرار سامانه در بردسیر',
+    category:'برنامه آتی',
+    source:'مدیریت پروژه',
+    importance:92,
+    time:'آتی'
+  },
+  {
+    title:'برنامه‌ریزی استقرار سامانه در راین',
+    category:'برنامه آتی',
+    source:'مدیریت پروژه',
+    importance:91,
+    time:'آتی'
+  },
+  {
+    title:'برنامه‌ریزی استقرار سامانه در کرمان',
+    category:'برنامه آتی',
+    source:'مدیریت پروژه',
+    importance:93,
+    time:'آتی'
+  }
+],
+
+trend: {
+  labels:['درآلو','رابر','بافت','گلزار','بردسیر','راین','کرمان'],
+  values:[100,100,100,100,20,0,0]
+},
+
+topicsStack: {
+  labels:['درآلو','رابر','بافت','گلزار','بردسیر','راین','کرمان'],
+  datasets:[
+    {
+      label:'ثبت اثر انگشت',
+      data:[120,65,55,60,0,0,0]
+    },
+    {
+      label:'پیشرفت استقرار',
+      data:[100,100,100,100,20,0,0]
+    },
+    {
+      label:'آموزش کاربران',
+      data:[120,65,55,60,0,0,0]
+    }
+  ]
+},
+    priceSeries: {
+  labels:[
+    'شرکتی',
+    'افق',
+    'آسمانه',
+    'حکیم مس',
+    'همگامان',
+    'ارفع سازان',
+    'راهور مس'
+  ],
+  datasets:[
+    {
+      label:'پرسنل',
+      data:[185,1560,1367,36,1100,260,365]
+    },
+    {
+      label:'وضعیت ثبت اثر انگشت',
+      data:[100,85,80,100,75,90,88]
+    },
+    {
+      label:'پوشش آموزش اپلیکیشن',
+      data:[95,70,65,100,60,85,80]
+    }
+  ]
+},
+    heat: [
+  { label:'کرمان',  x:0, y:0, value:1   },
+  { label:'رابر',   x:1, y:1, value:10 },
+  { label:'بردسیر', x:2, y:2, value:2  },
+  { label:'راین',   x:3, y:3, value:0   },
+  { label:'بافت',   x:4, y:4, value:10 },
+  { label:'درآلو',  x:5, y:5, value:20 }
+]
+  };
+}
+
+/* ------------------------
+   RENDERING & CHARTS
+------------------------*/
+let charts = {};
+function renderAll(data){
+  // KPIs
+  const k = data.kpi;
+  document.getElementById('k_news').innerText = k.newsCount;
+  document.getElementById('k_news_delta').innerText = k.newsDelta;
+  document.getElementById('k_hot').innerText = k.hot;
+  document.getElementById('k_hot_vol').innerText = k.hotVol;
+  document.getElementById('k_sent').innerText = k.sentiment;
+  document.getElementById('k_sent_ratio').innerText = k.sentRatio;
+  document.getElementById('k_risk').innerText = k.risk;
+  document.getElementById('k_alerts').innerText = k.alerts;
+  document.getElementById('k_price').innerText = k.priceIndex;
+  document.getElementById('k_price_delta').innerText = k.priceDelta;
+  document.getElementById('k_ops').innerText = k.ops;
+  document.getElementById('k_op_top').innerText = k.opTop;
+
+  // AI summary
+  document.getElementById('aiSummary').innerText = data.ai.summary;
+
+  // News table
+  const tbody = document.querySelector('#newsTable tbody');
+  tbody.innerHTML = data.news.map(n=>`<tr>
+    <td>${escapeHtml(n.title)}</td>
+    <td>${escapeHtml(n.category)}</td>
+    <td>${escapeHtml(n.source)}</td>
+    <td style="text-align:center">${n.importance}</td>
+    <td>${escapeHtml(n.time)}</td>
+  </tr>`).join('');
+
+  // Search
+  document.getElementById('searchInput').oninput = function(e){
+    const q = e.target.value.trim().toLowerCase();
+    tbody.innerHTML = data.news.filter(n=>n.title.toLowerCase().includes(q)).map(n=>`<tr>
+      <td>${escapeHtml(n.title)}</td>
+      <td>${escapeHtml(n.category)}</td>
+      <td>${escapeHtml(n.source)}</td>
+      <td style="text-align:center">${n.importance}</td>
+      <td>${escapeHtml(n.time)}</td>
+    </tr>`).join('');
+  };
+
+  // Charts
+  // Trend
+  if(charts.trend) charts.trend.destroy();
+  charts.trend = new Chart(document.getElementById('chart_trend'), {
+    type:'line',
+    data:{ labels: data.trend.labels, datasets:[{label:'تعداد اخبار', data: data.trend.values, borderColor:'#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)', fill:true, tension:0.25}] },
+    options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+  });
+
+  // Topics stacked
+  if(charts.topics) charts.topics.destroy();
+  charts.topics = new Chart(document.getElementById('chart_topics'), {
+    type:'bar',
+    data:{
+      labels: data.trend.labels,
+      datasets: data.topicsStack.datasets.map((ds,i)=>({ label: ds.label, data: ds.data, stack: 'stack1' }))
+    },
+    options:{ plugins:{legend:{position:'bottom'}}, scales:{x:{stacked:true}, y:{stacked:true}} }
+  });
+
+  // Price series
+  if(charts.prices) charts.prices.destroy();
+  charts.prices = new Chart(document.getElementById('chart_prices'), {
+    type:'line',
+    data:{ labels: data.priceSeries.labels, datasets: data.priceSeries.datasets.map((s,idx)=>({ label:s.label, data:s.data, borderColor: idx===0 ? '#f97316' : (idx===1? '#06b6d4' : '#10b981'), fill: false, tension:0.2 })) },
+    options:{ plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:false}} }
+  });
+
+  // Heatmap (bubble-ish)
+  if(charts.heat) charts.heat.destroy();
+  const heatDataset = {
+    datasets: data.heat.map((h,idx)=>({ label:h.label, data:[{x:h.x,y:h.y,r:Math.max(6,h.value)}] }))
+  };
+  charts.heat = new Chart(document.getElementById('chart_heat'), { type:'bubble', data: heatDataset, options:{ plugins:{legend:{display:true}}, scales:{x:{ticks:{callback:i=>data.topicsStack?.labels?.[i]||i}}, y:{display:false}} } });
+
+  // Gauges (SVG)
+  document.getElementById('g_risk').innerHTML = gaugeSVG('افراد تحت تکلف', mapRiskToPct(k.risk));
+  document.getElementById('g_sent').innerHTML = gaugeSVG('پرسنل', parseInt(k.sentRatio.split('/')[0] || 50));
+}
+
+/* small helpers */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) }
+function mapRiskToPct(r){ if(!r) return 50; r = r.toString().toLowerCase(); if(r.includes('بالا')) return 85; if(r.includes('متوسط')) return 55; if(r.includes('پایین')) return 20; return 50; }
+function gaugeSVG(label, value){
+  const pct = Math.max(0,Math.min(100,value));
+  const angle = pct * 1.8;
+  const x = 100 + 80*Math.cos((180-angle)*Math.PI/180);
+  const y = 90 - 80*Math.sin((180-angle)*Math.PI/180);
+  return `
+    <svg viewBox="0 0 200 100" width="100%" height="80">
+      <defs><linearGradient id="g1"><stop offset="0%" stop-color="#ef4444"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#10b981"/></linearGradient></defs>
+      <path d="M20 90 A80 80 0 0 1 180 90" fill="none" stroke="#374151" stroke-width="12"/>
+      <path d="M20 90 A80 80 0 0 1 ${x} ${y}" fill="none" stroke="url(#g1)" stroke-width="12" stroke-linecap="round"/>
+      <text x="100" y="50" text-anchor="middle" font-size="13" fill="#e6eef8">${label}</text>
+      <text x="100" y="75" text-anchor="middle" font-size="12" fill="#e6eef8">${pct}%</text>
+    </svg>
+  `;
+}
+
+/* Refresh logic */
+async function loadAndRender(){
+  let data = null;
+  if(USE_GAS){
+    data = await fetchDataFromGAS();
+  }
+  if(!data){ data = demoData(); document.getElementById('apiFlag').innerText = 'دمو فعال'; }
+  renderAll(data);
+}
+
+/* Manual refresh */
+function refreshNow(){ loadAndRender(); }
+
+/* PDF (simple client-side snapshot of the main wrap) */
+function downloadPDF(){
+  // Simple approach: open print dialog for user to save as PDF
+  window.print();
+}
+
+/* init */
+loadAndRender();
+</script>
+</body>
+</html>
